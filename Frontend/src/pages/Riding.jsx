@@ -4,14 +4,48 @@ import { RideDataContext } from '../context/RideContext'
 import { SocketDataContext } from '../context/SocketContext'
 import LiveMap from '../components/LiveMap'
 
+const getMapLocation = (coordinates, address, fallback) => {
+  const lat = Number(coordinates?.lat)
+  const lng = Number(coordinates?.lng)
+
+  if (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 && lat <= 90 &&
+    lng >= -180 && lng <= 180
+  ) {
+    return { lat, lng, address }
+  }
+
+  return Number.isFinite(fallback?.lat) && Number.isFinite(fallback?.lng)
+    ? fallback
+    : null
+}
+
 const Riding = () => {
 
-  const { ride, setCaptainLocation } = useContext(RideDataContext)
+  const { ride, setActiveRide, setCaptainLocation } = useContext(RideDataContext)
   const { getSocket } = useContext(SocketDataContext)
   const navigate = useNavigate()
 
   const activeRide = ride.activeRide
   const captain = activeRide.captain
+  const pickupLocation = getMapLocation(
+    activeRide.pickupCoordinates,
+    activeRide.pickup,
+    ride.pickup
+  )
+  const destinationLocation = getMapLocation(
+    activeRide.destinationCoordinates,
+    activeRide.destination,
+    ride.destination
+  )
+
+  useEffect(() => {
+    if (!activeRide.rideId) {
+      navigate('/home', { replace: true })
+    }
+  }, [activeRide.rideId, navigate])
 
   useEffect(() => {
     const socket = getSocket()
@@ -19,7 +53,12 @@ const Riding = () => {
       return
     }
 
-    const handleRideEnded = () => {
+    const handleRideEnded = (rideData) => {
+      if (rideData?._id !== activeRide.rideId) {
+        return
+      }
+
+      setActiveRide(rideData)
       navigate('/user_payment')
     }
 
@@ -28,7 +67,7 @@ const Riding = () => {
     return () => {
       socket.off('ride-ended', handleRideEnded)
     }
-  }, [getSocket, navigate])
+  }, [activeRide.rideId, getSocket, navigate, setActiveRide])
 
   useEffect(() => {
     const socket = getSocket()
@@ -37,6 +76,10 @@ const Riding = () => {
     }
 
     const handleCaptainLocation = (data) => {
+      if (String(data?.rideId) !== String(activeRide.rideId)) {
+        return
+      }
+
       setCaptainLocation(data.location)
     }
 
@@ -45,7 +88,7 @@ const Riding = () => {
     return () => {
       socket.off('captain-location', handleCaptainLocation)
     }
-  }, [getSocket, setCaptainLocation])
+  }, [activeRide.rideId, getSocket, setCaptainLocation])
 
   return (
     <div className='h-screen'>
@@ -56,10 +99,17 @@ const Riding = () => {
 
         <div className='h-[62%]'>
             <LiveMap
-            center={ride.pickup.lat ? [ride.pickup.lat, ride.pickup.lng] : null}
-            pickup={ride.pickup.lat ? ride.pickup : null}
-            destination={ride.destination.lat ? ride.destination : null}
-            captainLocation={ride.activeRide.captainLocation?.lat ? ride.activeRide.captainLocation : null}
+            center={pickupLocation ? [pickupLocation.lat, pickupLocation.lng] : null}
+            pickup={pickupLocation}
+            destination={destinationLocation}
+            captainLocation={
+                  (ride.activeRide.status === 'accepted' ||
+                    ride.activeRide.status === 'ongoing') &&
+                  ride.activeRide.captainLocation?.lat
+                    ? ride.activeRide.captainLocation
+                    : null
+                }
+            captainVehicleType={captain?.vehicle?.vehicleType || activeRide.vehicleType}
             />
         </div>
 
@@ -94,10 +144,6 @@ const Riding = () => {
                         <p className='text-sm -mt-1 text-gray-600'>Payment Mode : Cash</p>
                     </div>
                 </div>
-
-                <p className='text-xs text-gray-400 px-2 mb-1'>
-                  Live driver tracking on the map isn't available yet — pickup and destination are shown as fixed points.
-                </p>
  
             </div>
 

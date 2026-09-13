@@ -11,7 +11,15 @@ const VehiclePanel = (props) => {
     return `₹${value}`
   }
 
+  const hasValidFares = ['Car', 'Bike', 'Auto'].every((vehicleType) => (
+    Number.isFinite(estimate[vehicleType]) && estimate[vehicleType] >= 0
+  ))
+
   const selectVehicle = (vehicleType) => {
+    if (!hasValidFares) {
+      return
+    }
+
     props.setSelectedVehicleType(vehicleType)
     props.setconfirmRidePanelOpen(true)
   }
@@ -26,7 +34,7 @@ const VehiclePanel = (props) => {
 
       <div onClick={() => {
         selectVehicle('Car')
-      }} className='border-3 border-white active:border-black flex items-center gap-3 p-4 rounded-2xl mb-3'>
+      }} aria-disabled={!hasValidFares} className={`border-3 border-white active:border-black flex items-center gap-3 p-4 rounded-2xl mb-3 ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
 
         <img
           className='h-11'
@@ -48,7 +56,7 @@ const VehiclePanel = (props) => {
 
       <div onClick={() => {
         selectVehicle('Bike')
-      }} className='border-3 border-white active:border-black flex items-center gap-4 p-4 rounded-2xl mb-3'>
+      }} aria-disabled={!hasValidFares} className={`border-3 border-white active:border-black flex items-center gap-4 p-4 rounded-2xl mb-3 ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
 
         <img
           className='h-13 px-2.5'
@@ -70,7 +78,7 @@ const VehiclePanel = (props) => {
 
       <div onClick={() => {
         selectVehicle('Auto')
-      }} className='border-3 border-white active:border-black flex items-center gap-4 p-4 rounded-2xl'>
+      }} aria-disabled={!hasValidFares} className={`border-3 border-white active:border-black flex items-center gap-4 p-4 rounded-2xl ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
 
         <img
           className='h-18'

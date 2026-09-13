@@ -5,7 +5,7 @@ const mapController = require('../controllers/map.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 
 router.get('/get-coordinates',
-    authMiddleware.authUser,
+    authMiddleware.authAny,
     [
         query('address')
             .isString()
@@ -16,7 +16,7 @@ router.get('/get-coordinates',
 );
 
 router.get('/get-suggestions',
-    authMiddleware.authUser,
+    authMiddleware.authAny,
     [
         query('input')
             .isString()
@@ -27,7 +27,7 @@ router.get('/get-suggestions',
 );
 
 router.get('/get-distance-time',
-    authMiddleware.authUser,
+    authMiddleware.authAny,
     [
         query('origin')
             .isString()
@@ -51,7 +51,7 @@ router.get('/get-address',
             .isFloat()
             .withMessage('Longitude must be a valid number')
     ],
-    mapController.getAddressFromCoordinates
+    mapController.getAddress
 );
 
 module.exports = router;

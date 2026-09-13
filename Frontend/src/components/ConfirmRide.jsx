@@ -2,9 +2,16 @@ import React, { useContext, useState } from 'react'
 import { RideDataContext } from '../context/RideContext'
 import api from '../services/api'
 
+const hasValidCoordinates = (location) => (
+  Number.isFinite(location?.lat) &&
+  Number.isFinite(location?.lng) &&
+  location.lat >= -90 && location.lat <= 90 &&
+  location.lng >= -180 && location.lng <= 180
+)
+
 const ConfirmRide = (props) => {
 
-  const { ride, setActiveRide } = useContext(RideDataContext)
+  const { ride, setActiveRide, clearActiveRide } = useContext(RideDataContext)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -14,8 +21,15 @@ const ConfirmRide = (props) => {
   const confirmRide = async () => {
     setErrorMessage('')
 
-    if (!ride.pickup.address || !ride.destination.address || !vehicleType) {
-      setErrorMessage('Pickup, destination, and vehicle type are required.')
+    if (
+      !ride.pickup.address ||
+      !ride.destination.address ||
+      !hasValidCoordinates(ride.pickup) ||
+      !hasValidCoordinates(ride.destination) ||
+      !vehicleType ||
+      !Number.isFinite(fareForSelectedVehicle)
+    ) {
+      setErrorMessage('Valid locations, vehicle type, and fare are required.')
       return
     }
 
@@ -25,8 +39,25 @@ const ConfirmRide = (props) => {
       const response = await api.post('/rides/create', {
         pickup: ride.pickup.address,
         destination: ride.destination.address,
+        pickupCoordinates: {
+          lat: ride.pickup.lat,
+          lng: ride.pickup.lng
+        },
+        destinationCoordinates: {
+          lat: ride.destination.lat,
+          lng: ride.destination.lng
+        },
         vehicleType: vehicleType
       })
+
+      if (response.data.status === 'cancelled') {
+        clearActiveRide()
+        props.setlookingVehicle(false)
+        props.setconfirmRidePanelOpen(false)
+        props.setvehiclePanelOpen(false)
+        props.onRideUnavailable?.(response.data.message)
+        return
+      }
 
       setActiveRide(response.data)
 
@@ -81,6 +112,10 @@ const ConfirmRide = (props) => {
 
         </div>
 
+
+        {errorMessage && (
+          <p className='w-full text-sm text-red-600 mb-3'>{errorMessage}</p>
+        )}
 
         <button
           onClick={confirmRide}

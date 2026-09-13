@@ -9,6 +9,7 @@ import RideAccepted from '../components/RideAccepted'
 import { SocketDataContext } from '../context/SocketContext'
 import { CaptainDataContext } from '../context/CaptainContext'
 import { RideDataContext } from '../context/RideContext'
+import api from '../services/api'
 
 const CaptainHome = () => {
 
@@ -23,7 +24,10 @@ const CaptainHome = () => {
   const rideAcceptedRef = useRef(null)
 
   const { getSocket } = useContext(SocketDataContext)
-  const { setActiveRide } = useContext(RideDataContext)
+  const { ride, setActiveRide, clearActiveRide } = useContext(RideDataContext)
+  const pendingRideId = ride.activeRide.rideId
+  const pendingRideStatus = ride.activeRide.status
+  const pendingRideExpiresAt = ride.activeRide.dispatchExpiresAt
 
   const LOCATION_EMIT_INTERVAL_MS = 4000
 
@@ -58,9 +62,8 @@ useEffect(() => {
     const socket = getSocket()
     const latest = latestPositionRef.current
 
-    if (socket && latest && captain?._id) {
+    if (socket && latest) {
       socket.emit('update-location-captain', {
-        captainId: captain._id,
         location: latest
       })
     }
@@ -76,7 +79,7 @@ useEffect(() => {
       emitIntervalRef.current = null
     }
   }
-}, [getSocket, captain?._id])
+}, [getSocket])
 
   useEffect(() => {
     const socket = getSocket()
@@ -85,7 +88,28 @@ useEffect(() => {
     }
 
     const handleNewRide = (data) => {
-      setActiveRide(data.ride)
+      const incomingRide = data?.ride
+      const expiresAt = Date.parse(incomingRide?.dispatchExpiresAt)
+      const hasRequiredRideData = (
+        incomingRide?._id &&
+        incomingRide.status === 'pending' &&
+        incomingRide.pickup &&
+        incomingRide.destination &&
+        incomingRide.vehicleType &&
+        Number.isFinite(incomingRide.fare) &&
+        Number.isFinite(expiresAt) &&
+        expiresAt > Date.now()
+      )
+
+      if (
+        !hasRequiredRideData ||
+        (pendingRideId && String(pendingRideId) !== String(incomingRide._id))
+      ) {
+        return
+      }
+
+      setActiveRide(incomingRide)
+      setrideAccepted(false)
       setridePopUpPanel(true)
     }
 
@@ -94,7 +118,58 @@ useEffect(() => {
     return () => {
       socket.off('new-ride', handleNewRide)
     }
-  }, [getSocket, setActiveRide])
+  }, [getSocket, pendingRideId, setActiveRide])
+
+  useEffect(() => {
+    const socket = getSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleRideUnavailable = (data) => {
+      if (
+        !pendingRideId ||
+        String(data?.rideId) !== String(pendingRideId)
+      ) {
+        return
+      }
+
+      setrideAccepted(false)
+      setridePopUpPanel(false)
+      clearActiveRide()
+    }
+
+    socket.on('ride-unavailable', handleRideUnavailable)
+
+    return () => {
+      socket.off('ride-unavailable', handleRideUnavailable)
+    }
+  }, [clearActiveRide, getSocket, pendingRideId])
+
+  useEffect(() => {
+    if (pendingRideStatus !== 'pending' || !pendingRideId) {
+      return
+    }
+
+    const expiryTime = Date.parse(pendingRideExpiresAt)
+    const delay = Number.isFinite(expiryTime)
+      ? Math.max(0, expiryTime - Date.now())
+      : 40000
+
+    const timeoutId = window.setTimeout(() => {
+      setrideAccepted(false)
+      setridePopUpPanel(false)
+      clearActiveRide()
+
+      api.post('/rides/reject', { rideId: pendingRideId }).catch(() => {
+        // The rider-side expiry request handles cancellation if this request fails.
+      })
+    }, delay)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [clearActiveRide, pendingRideExpiresAt, pendingRideId, pendingRideStatus])
 
   useGSAP(()=>{
     if(ridePopUpPanel){
@@ -135,19 +210,24 @@ useEffect(() => {
                 : undefined
             }
             captainLocation={captainLocation}
+            captainVehicleType={captain?.vehicle?.vehicleType}
           />
       </div>
 
       <div className='h-1/3 p-4'>
-        <CaptainDetails/>
+        <CaptainDetails captain={captain} />
       </div>
 
       <div ref={ridePopUpRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
         <RidePopUp setridePopUpPanel = {setridePopUpPanel} setrideAccepted = {setrideAccepted} />
       </div>
 
-      <div ref={rideAcceptedRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white p-5 h-screen'>
-        <RideAccepted setrideAccepted = {setrideAccepted} />
+      <div ref={rideAcceptedRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
+        <RideAccepted
+          key={ride.activeRide.rideId || 'no-ride'}
+          setrideAccepted={setrideAccepted}
+          setridePopUpPanel={setridePopUpPanel}
+        />
       </div>
 
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useLayoutEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 
@@ -12,8 +12,14 @@ const defaultIcon = new L.Icon({
   shadowSize: [41, 41],
 })
 
-const captainIcon = new L.DivIcon({
-  html: '<div style="font-size: 28px; line-height: 1;">🚗</div>',
+const captainIcons = {
+  Car: '🚗',
+  Bike: '🏍️',
+  Auto: '🛺',
+}
+
+const getCaptainIcon = (vehicleType) => new L.DivIcon({
+  html: `<div style="font-size: 28px; line-height: 1;">${captainIcons[vehicleType] || '📍'}</div>`,
   className: '',
   iconSize: [28, 28],
   iconAnchor: [14, 14],
@@ -31,7 +37,32 @@ const Recenter = ({ center }) => {
   return null
 }
 
-const LiveMap = ({ center, pickup = null, destination = null, captainLocation = null, zoom = 15 }) => {
+const InvalidateSizeOnMount = () => {
+  const map = useMap()
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize()
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [map])
+
+  return null
+}
+
+const ConfigureAttribution = () => {
+  const map = useMap()
+
+  useLayoutEffect(() => {
+    map.attributionControl.setPrefix(false)
+    map.attributionControl.setPosition('bottomright')
+  }, [map])
+
+  return null
+}
+
+const LiveMap = ({ center, pickup = null, destination = null, captainLocation = null, captainVehicleType = null, zoom = 15 }) => {
 
   const fallbackCenter = [28.6139, 77.2090]
   const mapCenter = center ?? fallbackCenter
@@ -45,11 +76,13 @@ const LiveMap = ({ center, pickup = null, destination = null, captainLocation = 
       style={{ zIndex: 0 }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
+      <ConfigureAttribution />
       <Recenter center={mapCenter} />
+      <InvalidateSizeOnMount />
 
       {pickup && typeof pickup.lat === 'number' && typeof pickup.lng === 'number' && (
         <Marker position={[pickup.lat, pickup.lng]} icon={defaultIcon}>
@@ -64,7 +97,7 @@ const LiveMap = ({ center, pickup = null, destination = null, captainLocation = 
       )}
 
       {captainLocation && typeof captainLocation.lat === 'number' && typeof captainLocation.lng === 'number' && (
-        <Marker position={[captainLocation.lat, captainLocation.lng]} icon={captainIcon}>
+        <Marker position={[captainLocation.lat, captainLocation.lng]} icon={getCaptainIcon(captainVehicleType)}>
           <Popup>Captain</Popup>
         </Marker>
       )}

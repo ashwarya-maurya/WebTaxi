@@ -52,27 +52,46 @@ module.exports.getCaptainsInRadius = async ({
     radius = 5,
     vehicleType
 }) => {
-    if (!lat || !lng || !vehicleType) {
+    const normalizedLat = Number(lat);
+    const normalizedLng = Number(lng);
+    const normalizedRadius = Number(radius);
+
+    if (
+        !Number.isFinite(normalizedLat) ||
+        !Number.isFinite(normalizedLng) ||
+        normalizedLat < -90 ||
+        normalizedLat > 90 ||
+        normalizedLng < -180 ||
+        normalizedLng > 180 ||
+        !Number.isFinite(normalizedRadius) ||
+        normalizedRadius <= 0 ||
+        !vehicleType
+    ) {
         throw new Error('Latitude, longitude and vehicle type are required');
     }
 
     const captains = await captainModel.find({
         status: 'active',
+        socketId: { $type: 'string', $ne: '' },
         'vehicle.vehicleType': vehicleType,
-        'location.lat': { $exists: true },
-        'location.lng': { $exists: true }
+        'location.lat': { $type: 'number' },
+        'location.lng': { $type: 'number' }
     });
 
     return captains.filter((captain) => {
+        if (!Number.isFinite(captain.location.lat) || !Number.isFinite(captain.location.lng)) {
+            return false;
+        }
+
         const distance = getDistanceInKm(
-            lat,
-            lng,
+            normalizedLat,
+            normalizedLng,
             captain.location.lat,
             captain.location.lng
         );
 
         captain._doc.distanceFromPickup = Number(distance.toFixed(2));
 
-        return distance <= radius;
+        return distance <= normalizedRadius;
     });
 };

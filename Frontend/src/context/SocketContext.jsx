@@ -9,13 +9,24 @@ const SocketContext = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false)
 
   const connectSocket = useCallback(() => {
-    if (socketRef.current) {
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      return null
+    }
+
+    if (socketRef.current?.auth?.token === token) {
       return socketRef.current
+    }
+
+    if (socketRef.current) {
+      socketRef.current.disconnect()
     }
 
     const socket = io(import.meta.env.VITE_BASE_URL, {
       withCredentials: true,
-      autoConnect: true
+      autoConnect: true,
+      auth: { token }
     })
 
     socket.on('connect', () => {
@@ -23,6 +34,10 @@ const SocketContext = ({ children }) => {
     })
 
     socket.on('disconnect', () => {
+      setIsConnected(false)
+    })
+
+    socket.on('connect_error', () => {
       setIsConnected(false)
     })
 
@@ -38,10 +53,10 @@ const SocketContext = ({ children }) => {
     }
   }, [])
 
-  const emitJoin = useCallback((userId, userType) => {
+  const emitJoin = useCallback(() => {
     const socket = socketRef.current
-    if (socket && userId && userType) {
-      socket.emit('join', { userId, userType })
+    if (socket) {
+      socket.emit('join')
     }
   }, [])
 

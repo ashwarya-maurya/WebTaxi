@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import 'remixicon/fonts/remixicon.css'
@@ -8,11 +8,24 @@ import ConfirmRide from '../components/ConfirmRide'
 import LookingDriver from '../components/LookingDriver'
 import WatingForDriver from '../components/WatingForDriver'
 import LiveMap from '../components/LiveMap'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { RideDataContext } from '../context/RideContext'
 import { SocketDataContext } from '../context/SocketContext'
 import useDebounce from '../hooks/useDebounce'
 import api from '../services/api'
+
+const hasValidCoordinates = (location) => (
+  Number.isFinite(location?.lat) &&
+  Number.isFinite(location?.lng) &&
+  location.lat >= -90 && location.lat <= 90 &&
+  location.lng >= -180 && location.lng <= 180
+)
+
+const hasValidFares = (fareData) => (
+  ['Car', 'Bike', 'Auto'].every((vehicleType) => (
+    Number.isFinite(fareData?.fare?.[vehicleType]) && fareData.fare[vehicleType] >= 0
+  ))
+)
 
 const Home = () => {
 
@@ -20,11 +33,13 @@ const Home = () => {
     e.preventDefault()
   }
 
-  const { ride, setPickup, setDestination, setEstimate, clearEstimate, setSelectedVehicleType, setActiveRide } = useContext(RideDataContext)
+  const navigate = useNavigate()
+
+  const { ride, setPickup, setDestination, setEstimate, clearBookingQuote, invalidateBookingLocation, setSelectedVehicleType, setActiveRide, clearActiveRide, setCaptainLocation } = useContext(RideDataContext)
   const { getSocket } = useContext(SocketDataContext)
 
-  const [pickup, setPickupInput] = useState('')
-  const [dropoff, setDropoffInput] = useState('')
+  const [pickup, setPickupInput] = useState(() => ride.pickup.address || ride.activeRide.pickup || '')
+  const [dropoff, setDropoffInput] = useState(() => ride.destination.address || ride.activeRide.destination || '')
   const [panelOpen, setPanelOpen] = useState(false)
   const [vehiclePanelOpen, setvehiclePanelOpen] = useState(false)
   const [confirmRidePanelOpen, setconfirmRidePanelOpen] = useState(false)
@@ -37,6 +52,8 @@ const Home = () => {
 
   const [suggestions, setSuggestions] = useState([])
   const [isSearching, setIsSearching] = useState(false)
+  const [locationStatus, setLocationStatus] = useState('idle')
+  const [locationMessage, setLocationMessage] = useState('')
 
   const activeQuery = activeField === 'pickup' ? pickup : activeField === 'dropoff' ? dropoff : ''
   const debouncedQuery = useDebounce(activeQuery, 400)
@@ -49,36 +66,119 @@ const Home = () => {
   const lookingVehicleRef = useRef(null)
   const watingForDriverRef = useRef(null)
 
-  // -------------------------------------------------------------------
-  // pickupEditedRef — true as soon as the user has touched the pickup
-  // field themselves (typing or selecting a suggestion). A ref, not
-  // state, because:
-  //   1. Setting it should never trigger a re-render.
-  //   2. It must be read synchronously inside the pending reverse-geocode
-  //      request's .then()/.catch() below without a stale-closure risk —
-  //      a ref always reflects the latest value, a captured state value
-  //      from effect-creation time would not.
-  // -------------------------------------------------------------------
-  const pickupEditedRef = useRef(false)
+  const pickupEditedRef = useRef(Boolean(ride.activeRide.rideId || ride.pickup.address))
+  const selectionRequestRef = useRef(0)
+  const fareRequestRef = useRef(0)
+  const isProcessingLocationRef = useRef(false)
+  const selectedLocationQueryRef = useRef('')
+  const pendingRideId = ride.activeRide.rideId
+  const pendingRideStatus = ride.activeRide.status
+  const pendingRideExpiresAt = ride.activeRide.dispatchExpiresAt
 
-  // -------------------------------------------------------------------
-  // Geolocation — runs once on mount.
-  //
-  // UPDATED (race-condition guard): the reverse-geocode call
-  // (GET /maps/get-address) is async and can resolve after the user has
-  // already started typing or selected a pickup location themselves. This
-  // effect now checks pickupEditedRef.current at TWO points:
-  //   1. Before firing the request at all — skips entirely if the user
-  //      already edited pickup in the (unlikely but possible) window
-  //      between mount and the geolocation callback firing.
-  //   2. Again inside .then()/.catch(), right before applying the result —
-  //      this is the case that actually matters in practice, since the
-  //      network round-trip gives the user a real window to type or pick
-  //      a suggestion before this resolves.
-  // If the user has edited pickup by either checkpoint, this effect does
-  // nothing further — it does not touch the pickup input OR RideContext,
-  // leaving whatever the user entered/selected fully intact.
-  // -------------------------------------------------------------------
+  const handleRideUnavailable = useCallback((message) => {
+    setlookingVehicle(false)
+    setwatingForDriver(false)
+    setconfirmRidePanelOpen(false)
+    setvehiclePanelOpen(false)
+    setPanelOpen(false)
+    clearActiveRide()
+    window.alert(message || 'No captains are available for this ride. Please try again later.')
+  }, [clearActiveRide])
+
+  useEffect(() => {
+    if (!pendingRideId) {
+      return
+    }
+
+    if (pendingRideStatus === 'pending') {
+      setPanelOpen(false)
+      setvehiclePanelOpen(false)
+      setconfirmRidePanelOpen(false)
+      setwatingForDriver(false)
+      setlookingVehicle(true)
+    } else if (pendingRideStatus === 'accepted') {
+      setPanelOpen(false)
+      setvehiclePanelOpen(false)
+      setconfirmRidePanelOpen(false)
+      setlookingVehicle(false)
+      setwatingForDriver(true)
+    }
+  }, [pendingRideId, pendingRideStatus])
+
+  useEffect(() => {
+    const socket = getSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleRideStarted = (rideData) => {
+      setActiveRide(rideData)
+      setwatingForDriver(false)
+      navigate('/riding')
+    }
+
+    socket.on('ride-started', handleRideStarted)
+
+    return () => {
+      socket.off('ride-started', handleRideStarted)
+    }
+  }, [getSocket, setActiveRide, navigate])
+
+  useEffect(() => {
+    const socket = getSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleUnavailable = (data) => {
+      if (
+        ride.activeRide.rideId &&
+        String(data?.rideId) !== String(ride.activeRide.rideId)
+      ) {
+        return
+      }
+
+      handleRideUnavailable(data?.message)
+    }
+
+    socket.on('ride-unavailable', handleUnavailable)
+
+    return () => {
+      socket.off('ride-unavailable', handleUnavailable)
+    }
+  }, [getSocket, handleRideUnavailable, ride.activeRide.rideId])
+
+  useEffect(() => {
+    if (pendingRideStatus !== 'pending' || !pendingRideId) {
+      return
+    }
+
+    const expiryTime = Date.parse(pendingRideExpiresAt)
+    const delay = Number.isFinite(expiryTime)
+      ? Math.max(0, expiryTime - Date.now())
+      : 40000
+    let isCurrent = true
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await api.post('/rides/cancel', { rideId: pendingRideId })
+
+        if (isCurrent && response.data.status === 'cancelled') {
+          handleRideUnavailable(response.data.message)
+        }
+      } catch (error) {
+        if (isCurrent && error.response?.status !== 409) {
+          window.alert('Could not update the ride request. Please try again.')
+        }
+      }
+    }, delay)
+
+    return () => {
+      isCurrent = false
+      window.clearTimeout(timeoutId)
+    }
+  }, [handleRideUnavailable, pendingRideExpiresAt, pendingRideId, pendingRideStatus])
+
   useEffect(() => {
     if (!navigator.geolocation) {
       return
@@ -106,37 +206,86 @@ const Home = () => {
             if (pickupEditedRef.current) {
               return
             }
-            // Reverse geocoding failed — keep coordinates for map centering
-            // only; address/input stay blank, same as prior behavior.
             setPickup({ address: '', lat: latitude, lng: longitude })
           })
       },
       () => {
-        // Permission denied or unavailable — pickup field stays empty,
-        // exactly as it already does today. No error UI for this phase.
+
       }
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [setPickup])
 
   useEffect(() => {
+    const socket = getSocket()
+    if (!socket) {
+      return
+    }
+
+    const handleCaptainLocation = (data) => {
+      if (
+        !ride.activeRide.rideId ||
+        String(data?.rideId) !== String(ride.activeRide.rideId)
+      ) {
+        return
+      }
+
+      setCaptainLocation(data.location)
+    }
+
+    socket.on('captain-location', handleCaptainLocation)
+
+    return () => {
+      socket.off('captain-location', handleCaptainLocation)
+    }
+  }, [getSocket, ride.activeRide.rideId, setCaptainLocation])
+
+  useEffect(() => {
+    if (locationStatus !== 'idle') {
+      setSuggestions([])
+      setIsSearching(false)
+      return
+    }
+
+    if (selectedLocationQueryRef.current === `${activeField}:${debouncedQuery}`) {
+      setSuggestions([])
+      setIsSearching(false)
+      return
+    }
+
     if (!activeField || !debouncedQuery || debouncedQuery.trim().length < 3) {
       setSuggestions([])
+      setIsSearching(false)
       return
     }
 
     let isCurrent = true
+    let timedOut = false
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, 8000)
+
+    setLocationStatus('idle')
+    setLocationMessage('')
     setIsSearching(true)
 
-    api.get('/maps/get-suggestions', { params: { input: debouncedQuery } })
+    api.get('/maps/get-suggestions', {
+      params: { input: debouncedQuery },
+      signal: controller.signal
+    })
       .then((response) => {
         if (isCurrent) {
           setSuggestions(response.data)
+          if (response.data.length === 0) {
+            setLocationMessage('No locations found. Try a different search.')
+          }
         }
       })
       .catch(() => {
         if (isCurrent) {
           setSuggestions([])
+          setLocationMessage(timedOut ? 'Location search timed out. Try again.' : 'Could not search locations. Try again.')
         }
       })
       .finally(() => {
@@ -147,67 +296,201 @@ const Home = () => {
 
     return () => {
       isCurrent = false
+      window.clearTimeout(timeoutId)
+      controller.abort()
     }
-  }, [debouncedQuery, activeField])
+  }, [debouncedQuery, activeField, locationStatus])
 
   const onSelectLocation = async (place) => {
     const address = place.displayName
+    const field = activeField
 
-    if (activeField === 'pickup') {
+    if (!address || !field || isProcessingLocationRef.current || locationStatus !== 'idle') {
+      return
+    }
+
+    isProcessingLocationRef.current = true
+    const requestId = ++selectionRequestRef.current
+    fareRequestRef.current += 1
+    invalidateBookingLocation(field === 'pickup' ? 'pickup' : 'destination')
+    setvehiclePanelOpen(false)
+    setconfirmRidePanelOpen(false)
+    setPanelOpen(true)
+    setLocationStatus('resolving')
+    setLocationMessage('')
+    setSuggestions([])
+
+    if (field === 'pickup') {
       pickupEditedRef.current = true
       setPickupInput(address)
-    } else if (activeField === 'dropoff') {
+    } else if (field === 'dropoff') {
       setDropoffInput(address)
     }
 
     try {
-      const response = await api.get('/maps/get-coordinates', { params: { address } })
-      const coords = response.data
+      let coords = hasValidCoordinates(place) ? place : null
 
-      if (activeField === 'pickup') {
+      if (!coords) {
+        let timedOut = false
+        const controller = new AbortController()
+        const timeoutId = window.setTimeout(() => {
+          timedOut = true
+          controller.abort()
+        }, 8000)
+
+        try {
+          const response = await api.get('/maps/get-coordinates', {
+            params: { address },
+            signal: controller.signal
+          })
+          coords = response.data
+        } catch {
+          if (requestId === selectionRequestRef.current) {
+            isProcessingLocationRef.current = false
+            setLocationStatus('idle')
+            setLocationMessage(timedOut ? 'Location lookup timed out. Try again.' : 'Could not set this location. Try another result.')
+          }
+          return
+        } finally {
+          window.clearTimeout(timeoutId)
+        }
+      }
+
+      if (requestId !== selectionRequestRef.current || !hasValidCoordinates(coords)) {
+        if (requestId === selectionRequestRef.current) {
+          isProcessingLocationRef.current = false
+          setLocationStatus('idle')
+          setLocationMessage('Could not set this location. Try another result.')
+        }
+        return
+      }
+
+      if (field === 'pickup') {
         setPickup({ address, lat: coords.lat, lng: coords.lng })
-      } else if (activeField === 'dropoff') {
+      } else if (field === 'dropoff') {
         setDestination({ address, lat: coords.lat, lng: coords.lng })
       }
-    } catch (error) {
-      // Coordinate resolution failed — address text is still set above,
-      // but RideContext coordinates won't update. Surfacing this to the
-      // user with proper UI feedback belongs to a later hardening phase.
-    }
 
-    setSuggestions([])
+      setSuggestions([])
+      selectedLocationQueryRef.current = `${field}:${address}`
+      const otherLocation = field === 'pickup' ? ride.destination : ride.pickup
+      if (!hasValidCoordinates(otherLocation)) {
+        isProcessingLocationRef.current = false
+        setLocationStatus('idle')
+        setLocationMessage(field === 'pickup' ? 'Pickup set. Select a destination.' : 'Destination set. Select a pickup.')
+      }
+    } catch {
+      if (requestId === selectionRequestRef.current) {
+        isProcessingLocationRef.current = false
+        setLocationStatus('idle')
+        setLocationMessage('Could not set this location. Try another result.')
+      }
+    }
   }
 
   useEffect(() => {
-    const pickupAddress = ride.pickup.address
-    const destinationAddress = ride.destination.address
-
-    if (!pickupAddress || !destinationAddress) {
-      clearEstimate()
+    if (ride.activeRide.rideId) {
+      fareRequestRef.current += 1
+      clearBookingQuote()
       return
     }
 
+    const pickupAddress = ride.pickup.address
+    const destinationAddress = ride.destination.address
+
+    if (!pickupAddress || !destinationAddress || !hasValidCoordinates(ride.pickup) || !hasValidCoordinates(ride.destination)) {
+      fareRequestRef.current += 1
+      clearBookingQuote()
+      return
+    }
+
+    const requestId = ++fareRequestRef.current
     let isCurrent = true
+    let timedOut = false
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, 10000)
+
+    clearBookingQuote()
+    setLocationStatus('fare-loading')
+    setLocationMessage('')
 
     api.get('/rides/get-fare', {
-      params: { pickup: pickupAddress, destination: destinationAddress }
+      params: {
+        pickup: pickupAddress,
+        destination: destinationAddress,
+        pickupLat: ride.pickup.lat,
+        pickupLng: ride.pickup.lng,
+        destinationLat: ride.destination.lat,
+        destinationLng: ride.destination.lng
+      },
+      signal: controller.signal
     })
       .then((response) => {
-        if (isCurrent) {
+        if (isCurrent && requestId === fareRequestRef.current && hasValidFares(response.data)) {
+          isProcessingLocationRef.current = false
           setEstimate(response.data)
+          setLocationStatus('idle')
+          setPanelOpen(false)
+          setvehiclePanelOpen(true)
+        } else if (isCurrent && requestId === fareRequestRef.current) {
+          isProcessingLocationRef.current = false
+          clearBookingQuote()
+          setLocationStatus('idle')
+          setLocationMessage('Could not calculate a valid fare. Try different locations.')
+          setPanelOpen(true)
         }
       })
-      .catch(() => {
-        if (isCurrent) {
-          clearEstimate()
+      .catch((error) => {
+        if (isCurrent && requestId === fareRequestRef.current) {
+          isProcessingLocationRef.current = false
+          clearBookingQuote()
+          setLocationStatus('idle')
+          setLocationMessage(
+            timedOut
+              ? 'Fare calculation timed out. Try again.'
+              : error.response?.data?.message || 'Could not calculate fare. Try again.'
+          )
+          setPanelOpen(true)
         }
       })
 
     return () => {
       isCurrent = false
+      window.clearTimeout(timeoutId)
+      controller.abort()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ride.pickup.address, ride.destination.address])
+
+  }, [ride.activeRide.rideId, ride.pickup, ride.destination, clearBookingQuote, setEstimate])
+
+  const handlePickupChange = (event) => {
+    pickupEditedRef.current = true
+    isProcessingLocationRef.current = false
+    selectedLocationQueryRef.current = ''
+    selectionRequestRef.current += 1
+    fareRequestRef.current += 1
+    setPickupInput(event.target.value)
+    invalidateBookingLocation('pickup')
+    setvehiclePanelOpen(false)
+    setconfirmRidePanelOpen(false)
+    setLocationStatus('idle')
+    setLocationMessage('')
+  }
+
+  const handleDropoffChange = (event) => {
+    isProcessingLocationRef.current = false
+    selectedLocationQueryRef.current = ''
+    selectionRequestRef.current += 1
+    fareRequestRef.current += 1
+    setDropoffInput(event.target.value)
+    invalidateBookingLocation('destination')
+    setvehiclePanelOpen(false)
+    setconfirmRidePanelOpen(false)
+    setLocationStatus('idle')
+    setLocationMessage('')
+  }
 
   useEffect(() => {
     const socket = getSocket()
@@ -221,10 +504,10 @@ const Home = () => {
       setwatingForDriver(true)
     }
 
-    socket.on('ride-confirmed', handleRideConfirmed)
+    socket.on('ride-accepted', handleRideConfirmed)
 
     return () => {
-      socket.off('ride-confirmed', handleRideConfirmed)
+      socket.off('ride-accepted', handleRideConfirmed)
     }
   }, [getSocket, setActiveRide])
 
@@ -327,9 +610,18 @@ const Home = () => {
       <div className='h-[75%]'>
         <LiveMap
           center={mapCenter}
-          pickup={ride.pickup.lat ? ride.pickup : null}
-          destination={ride.destination.lat ? ride.destination : null}
+          pickup={hasValidCoordinates(ride.pickup) ? ride.pickup : null}
+          destination={hasValidCoordinates(ride.destination) ? ride.destination : null}
+          captainLocation={
+            (ride.activeRide.status === 'accepted' ||
+              ride.activeRide.status === 'ongoing') &&
+              ride.activeRide.captainLocation?.lat
+              ? ride.activeRide.captainLocation
+              : null
+          }
+          captainVehicleType={ride.activeRide.captain?.vehicle?.vehicleType || ride.activeRide.vehicleType}
         />
+
       </div>
 
       <div className='flex flex-col justify-end absolute w-full bottom-0'>
@@ -356,10 +648,7 @@ const Home = () => {
                 setPanelOpen(true)
                 setActiveField('pickup')
               }}
-              onChange={(e) => {
-                pickupEditedRef.current = true
-                setPickupInput(e.target.value)
-              }}
+              onChange={handlePickupChange}
               value={pickup}
               className='bg-[#EEEEEE] text-base px-12 py-2 mt-5 w-full rounded-lg outline-none focus:ring-2 focus:ring-black'
               type='text'
@@ -371,7 +660,7 @@ const Home = () => {
                 setPanelOpen(true)
                 setActiveField('dropoff')
               }}
-              onChange={(e) => setDropoffInput(e.target.value)}
+              onChange={handleDropoffChange}
               value={dropoff}
               className='bg-[#EEEEEE] text-base px-12 py-2 mt-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-black'
               type='text'
@@ -385,9 +674,9 @@ const Home = () => {
           <LocationSearchPanel
             suggestions={suggestions}
             isLoading={isSearching}
+            status={locationStatus}
+            message={locationMessage}
             onSelectLocation={onSelectLocation}
-            setvehiclePanelOpen={setvehiclePanelOpen}
-            setPanelOpen={setPanelOpen}
           />
         </div>
 
@@ -403,7 +692,12 @@ const Home = () => {
     </div>
 
     <div ref={confirmRidePanle}  className='fixed z-10 bottom-0 translate-y-full w-full bg-white px-4 py-6 rounded-t-2xl'>
-      <ConfirmRide setconfirmRidePanelOpen={setconfirmRidePanelOpen} setvehiclePanelOpen={setvehiclePanelOpen} setlookingVehicle={setlookingVehicle} />
+      <ConfirmRide
+        setconfirmRidePanelOpen={setconfirmRidePanelOpen}
+        setvehiclePanelOpen={setvehiclePanelOpen}
+        setlookingVehicle={setlookingVehicle}
+        onRideUnavailable={handleRideUnavailable}
+      />
     </div>
 
     <div ref={lookingVehicleRef}  className='fixed z-10 bottom-0 translate-y-full w-full bg-white px-4 py-6 rounded-t-2xl'>

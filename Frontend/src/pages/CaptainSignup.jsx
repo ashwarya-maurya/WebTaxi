@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
 import api from '../services/api'
+import WebTaxiLogo from '../assets/WebTaxiLogo.png'
 
 const CaptainSignup = () => {
 
@@ -63,7 +64,7 @@ const CaptainSignup = () => {
 
   return (
     <div className='w-full h-screen p-5 flex flex-col'>
-      <img className='w-20 mb-6' src='https://freelogopng.com/images/all_img/1659761100uber-logo-png.png' alt='Uber' />
+      <img className='w-40 mb-6' src={WebTaxiLogo} alt='WebTaxi' />
       <form
         onSubmit={(e) => {
           submitHandler(e)

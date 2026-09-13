@@ -72,3 +72,21 @@ module.exports.getAddressFromCoordinates = async (req, res, next) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+module.exports.getAddress = async (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const { lat, lng } = req.query;
+
+        const result = await mapService.getAddressFromCoordinates(lat, lng);
+
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

@@ -1,17 +1,27 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RideDataContext } from '../context/RideContext'
 import api from '../services/api'
 
 const RideAccepted = (props) => {
 
-    const { ride, setActiveRide } = useContext(RideDataContext)
+    const { ride, setActiveRide, clearActiveRide } = useContext(RideDataContext)
     const navigate = useNavigate()
 
     const [isConfirming, setIsConfirming] = useState(false)
+    const [isRideUnavailable, setIsRideUnavailable] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    const closeTimerRef = useRef(null)
 
     const activeRide = ride.activeRide
+
+    useEffect(() => {
+        return () => {
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current)
+            }
+        }
+    }, [])
 
     const confirmAccept = async () => {
         setErrorMessage('')
@@ -32,9 +42,38 @@ const RideAccepted = (props) => {
 
             navigate('/confirm_ride')
         } catch (error) {
+            const isConflict = error.response?.status === 409
+
             setErrorMessage(error.response?.data?.message || 'Could not confirm this ride. It may have already been accepted by another captain.')
+
+            if (isConflict) {
+                setIsRideUnavailable(true)
+                closeTimerRef.current = setTimeout(() => {
+                    props.setrideAccepted(false)
+                    props.setridePopUpPanel(false)
+                    clearActiveRide()
+                }, 2000)
+            }
         } finally {
             setIsConfirming(false)
+        }
+    }
+
+    const declineRide = async () => {
+        const rideId = activeRide.rideId
+
+        props.setrideAccepted(false)
+        props.setridePopUpPanel(false)
+        clearActiveRide()
+
+        if (!rideId) {
+            return
+        }
+
+        try {
+            await api.post('/rides/reject', { rideId })
+        } catch {
+            // The rider-side timeout will safely cancel an unanswered request.
         }
     }
 
@@ -45,8 +84,12 @@ const RideAccepted = (props) => {
         <div className='flex flex-col justify-center items-center'>
             <div className='flex items-center justify-between w-full p-2 rounded-lg mb-2 border-3 border-yellow-500 '>
                 <div className='flex gap-1 items-center'>
-                    <img className='w-15 h-15 object-cover rounded-full' src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6SccWXtO5el1MJFP_JcVKd1z-FKqBEZm6NQ&s" alt="User"/>
-                    <p className='text-xl font-semibold'>New Rider</p>
+                    <img className='w-15 h-15 object-cover rounded-full' src="https://cdn-icons-png.magnific.com/512/4140/4140037.png" alt="User"/>
+                    <p className='text-xl font-semibold'>
+                        {ride.activeRide.user
+                        ? `${ride.activeRide.user.fullname.firstname} ${ride.activeRide.user.fullname.lastname}`
+                        : "New Rider"}
+                    </p>
                 </div>
                 <p className='text-xl font-semibold'>
                   {activeRide.distance !== null ? `${(activeRide.distance / 1000).toFixed(1)} Km` : '—'}
@@ -88,17 +131,20 @@ const RideAccepted = (props) => {
                 <div className='flex gap-2'>
                 <button
                 onClick={confirmAccept}
-                disabled={isConfirming}
-                className={`text-center w-1/2 text-white p-2 rounded ${isConfirming ? 'bg-green-400' : 'bg-green-700'}`}
+                disabled={isConfirming || isRideUnavailable}
+                className={`text-center w-1/2 text-white p-2 rounded ${isConfirming || isRideUnavailable ? 'bg-green-400' : 'bg-green-700'}`}
                 >
-                  {isConfirming ? 'Confirming...' : 'Confirm'}
+                  {isRideUnavailable ? 'Ride Unavailable' : isConfirming ? 'Confirming...' : 'Confirm'}
                 </button>
 
-                <button onClick={()=>{
-                    props.setrideAccepted(false)
-                }} 
-                className='w-1/2 bg-red-700 text-white p-2 rounded'>Cancel</button>
+                <button onClick={declineRide}
+                disabled={isRideUnavailable}
+                className={`w-1/2 text-white p-2 rounded ${isRideUnavailable ? 'bg-red-400' : 'bg-red-700'}`}>Cancel</button>
                 </div>
+
+                {errorMessage && (
+                  <p className='text-sm text-red-600 mt-3'>{errorMessage}</p>
+                )}
  
             </div>
 

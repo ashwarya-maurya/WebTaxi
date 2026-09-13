@@ -10,10 +10,6 @@ const WatingForDriver = (props) => {
   return (
     <div>
 
-        <h5 onClick={()=>{
-            props.setwatingForDriver(false)
-        }} className='text-center absolute top-0 w-[95%]' ><i className=" text-2xl text-gray-300 ri-arrow-down-wide-line"></i></h5>
-
         <h4 className='text-2xl font-bold mb-5'>Wating for Driver</h4>
 
             <div className='flex items-center justify-between mb-5'>
@@ -24,7 +20,7 @@ const WatingForDriver = (props) => {
                     </h2>
                     <h4 className='text-xl font-semibold -mt-1 -mb-1'>{captain?.vehicle?.plate || 'Plate pending'}</h4>
                     <p className='text-sm text-gray-600'>{captain?.vehicle?.color ? `${captain.vehicle.color} ${captain.vehicle.vehicleType}` : 'Vehicle pending'}</p>
-                    <p className='font-semibold text-gray-800' >{activeRide.otp || ride.activeRide.otp || 'Not available'}</p>
+                    <p className='font-semibold text-gray-800' >OTP : {activeRide.otp || ride.activeRide.otp || 'Not available'}</p>
                 </div>
             </div>
 

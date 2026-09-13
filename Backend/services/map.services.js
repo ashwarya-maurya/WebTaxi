@@ -6,6 +6,70 @@ const getHeaders = () => ({
     'Accept': 'application/json'
 });
 
+const createMapError = (message, statusCode) => {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    return error;
+};
+
+const isValidCoordinates = (coordinates) => (
+    Number.isFinite(Number(coordinates?.lat)) &&
+    Number.isFinite(Number(coordinates?.lng)) &&
+    Number(coordinates.lat) >= -90 && Number(coordinates.lat) <= 90 &&
+    Number(coordinates.lng) >= -180 && Number(coordinates.lng) <= 180
+);
+
+const normalizeCoordinates = (coordinates) => ({
+    lat: Number(coordinates.lat),
+    lng: Number(coordinates.lng)
+});
+
+const fetchJson = async (url, options = {}, failureMessage) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+
+        if (response.status === 429) {
+            throw createMapError('Map service is busy. Try again shortly.', 503);
+        }
+
+        let data;
+
+        try {
+            data = await response.json();
+        } catch (error) {
+            throw createMapError(failureMessage, 502);
+        }
+
+        if (!response.ok) {
+            if (data?.code === 'NoRoute' || data?.code === 'NoSegment') {
+                throw createMapError('One of these locations is not reachable by road. Try a nearby location.', 422);
+            }
+
+            throw createMapError(failureMessage, 502);
+        }
+
+        return data;
+    } catch (error) {
+        if (error.statusCode) {
+            throw error;
+        }
+
+        if (error.name === 'AbortError') {
+            throw createMapError('Map service timed out. Try again.', 504);
+        }
+
+        throw createMapError(failureMessage, 502);
+    } finally {
+        clearTimeout(timeoutId);
+    }
+};
+
 module.exports.getCoordinates = async (address) => {
     if (!address) {
         throw new Error('Address is required');
@@ -13,18 +77,14 @@ module.exports.getCoordinates = async (address) => {
 
     const url = `${NOMINATIM_BASE_URL}/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
 
-    const response = await fetch(url, {
-        headers: getHeaders()
-    });
-
-    if (!response.ok) {
-        throw new Error('Unable to fetch coordinates');
-    }
-
-    const data = await response.json();
+    const data = await fetchJson(
+        url,
+        { headers: getHeaders() },
+        'Unable to fetch coordinates'
+    );
 
     if (!data || data.length === 0) {
-        throw new Error('No coordinates found for this address');
+        throw createMapError('No coordinates found for this address', 422);
     }
 
     return {
@@ -61,27 +121,42 @@ module.exports.getSuggestions = async (input) => {
     }));
 };
 
-module.exports.getDistanceTime = async (origin, destination) => {
+module.exports.getDistanceTime = async (
+    origin,
+    destination,
+    providedOriginCoordinates = null,
+    providedDestinationCoordinates = null
+) => {
     if (!origin || !destination) {
-        throw new Error('Origin and destination are required');
+        throw createMapError('Origin and destination are required', 400);
     }
 
-    const originCoordinates = await module.exports.getCoordinates(origin);
-    const destinationCoordinates = await module.exports.getCoordinates(destination);
+    const originCoordinates = isValidCoordinates(providedOriginCoordinates)
+        ? normalizeCoordinates(providedOriginCoordinates)
+        : await module.exports.getCoordinates(origin);
+    const destinationCoordinates = isValidCoordinates(providedDestinationCoordinates)
+        ? normalizeCoordinates(providedDestinationCoordinates)
+        : await module.exports.getCoordinates(destination);
 
     const coordinates = `${originCoordinates.lng},${originCoordinates.lat};${destinationCoordinates.lng},${destinationCoordinates.lat}`;
     const url = `${OSRM_BASE_URL}/route/v1/driving/${coordinates}?overview=false`;
 
-    const response = await fetch(url);
+    const data = await fetchJson(
+        url,
+        {},
+        'Unable to calculate distance and duration'
+    );
 
-    if (!response.ok) {
-        throw new Error('Unable to calculate distance and duration');
+    if (data.code === 'NoRoute' || data.code === 'NoSegment') {
+        throw createMapError('One of these locations is not reachable by road. Try a nearby location.', 422);
     }
 
-    const data = await response.json();
+    if (data.code !== 'Ok') {
+        throw createMapError('Unable to calculate distance and duration', 502);
+    }
 
     if (!data.routes || data.routes.length === 0) {
-        throw new Error('No route found between origin and destination');
+        throw createMapError('No route found between origin and destination', 422);
     }
 
     const route = data.routes[0];
@@ -95,7 +170,7 @@ module.exports.getDistanceTime = async (origin, destination) => {
 };
 
 module.exports.getAddressFromCoordinates = async (lat, lng) => {
-    if (lat === undefined || lat === null || lng === undefined || lng === null) {
+    if (!lat || !lng) {
         throw new Error('Latitude and longitude are required');
     }
 
@@ -106,7 +181,7 @@ module.exports.getAddressFromCoordinates = async (lat, lng) => {
     });
 
     if (!response.ok) {
-        throw new Error('Unable to fetch address for these coordinates');
+        throw new Error('Unable to fetch address');
     }
 
     const data = await response.json();
@@ -116,8 +191,6 @@ module.exports.getAddressFromCoordinates = async (lat, lng) => {
     }
 
     return {
-        address: data.display_name,
-        lat: Number(lat),
-        lng: Number(lng)
+        address: data.display_name
     };
 };

@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { RideDataContext } from '../context/RideContext'
 
-const RideComplete = (props) => {
+const RideComplete = () => {
 
   const { ride } = useContext(RideDataContext)
   const activeRide = ride.activeRide
@@ -15,8 +15,14 @@ const RideComplete = (props) => {
         <div className='flex flex-col justify-center items-center'>
             <div className='flex items-center justify-between w-full p-2 rounded-lg mb-2 border-3 border-yellow-500 '>
                 <div className='flex gap-1 items-center'>
-                    <img className='w-15 h-15 object-cover rounded-full' src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6SccWXtO5el1MJFP_JcVKd1z-FKqBEZm6NQ&s" alt="User"/>
-                    <p className='text-xl font-semibold'>Rider</p>
+                    <img className='w-15 h-15 object-cover rounded-full' src="https://cdn-icons-png.magnific.com/512/4140/4140037.png" alt="User"/>
+                    <h2 className='text-lg font-semibold'>
+                    {
+                        activeRide.user
+                            ? `${activeRide.user.fullname.firstname} ${activeRide.user.fullname.lastname}`
+                            : "Rider"
+                    }
+                    </h2>
                 </div>
                 <p className='text-xl font-semibold'>
                   {activeRide.distance !== null ? `${(activeRide.distance / 1000).toFixed(1)} Km` : '—'}
@@ -53,14 +59,8 @@ const RideComplete = (props) => {
 
             </div>
 
-            <div className='flex w-full gap-2' >
-
-            <Link to='/captain_payment' className='w-1/2 text-center bg-green-700 text-white p-2 rounded'>Recive Payment</Link>
-
-            <Link onClick={()=>{
-                props.setrideCompletePanel(false)   
-            }} to='/captain_home'
-            className='w-1/2 text-center bg-red-700 text-white p-2 rounded'>Close</Link>
+            <div className='w-full'>
+            <Link to='/captain_payment' className='w-full block text-center bg-green-700 text-white p-2 rounded'>Receive Payment</Link>
             </div>
 
         </div>

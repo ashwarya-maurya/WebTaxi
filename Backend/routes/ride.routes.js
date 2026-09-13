@@ -14,7 +14,23 @@ router.get('/get-fare',
         query('destination')
             .isString()
             .isLength({ min: 3 })
-            .withMessage('Destination must be at least 3 characters long')
+            .withMessage('Destination must be at least 3 characters long'),
+        query('pickupLat')
+            .optional()
+            .isFloat({ min: -90, max: 90 })
+            .withMessage('Invalid pickup latitude'),
+        query('pickupLng')
+            .optional()
+            .isFloat({ min: -180, max: 180 })
+            .withMessage('Invalid pickup longitude'),
+        query('destinationLat')
+            .optional()
+            .isFloat({ min: -90, max: 90 })
+            .withMessage('Invalid destination latitude'),
+        query('destinationLng')
+            .optional()
+            .isFloat({ min: -180, max: 180 })
+            .withMessage('Invalid destination longitude')
     ],
     rideController.getFare
 );
@@ -30,6 +46,30 @@ router.post('/create',
             .isString()
             .isLength({ min: 3 })
             .withMessage('Destination must be at least 3 characters long'),
+        body('pickupCoordinates')
+            .optional()
+            .isObject()
+            .withMessage('Pickup coordinates must be an object'),
+        body('pickupCoordinates.lat')
+            .optional()
+            .isFloat({ min: -90, max: 90 })
+            .withMessage('Invalid pickup latitude'),
+        body('pickupCoordinates.lng')
+            .optional()
+            .isFloat({ min: -180, max: 180 })
+            .withMessage('Invalid pickup longitude'),
+        body('destinationCoordinates')
+            .optional()
+            .isObject()
+            .withMessage('Destination coordinates must be an object'),
+        body('destinationCoordinates.lat')
+            .optional()
+            .isFloat({ min: -90, max: 90 })
+            .withMessage('Invalid destination latitude'),
+        body('destinationCoordinates.lng')
+            .optional()
+            .isFloat({ min: -180, max: 180 })
+            .withMessage('Invalid destination longitude'),
         body('vehicleType')
             .isIn(['Bike', 'Car', 'Auto'])
             .withMessage('Invalid vehicle type')
@@ -65,6 +105,26 @@ router.post('/accept',
     rideController.acceptRide
 );
 
+router.post('/reject',
+    authMiddleware.authCaptain,
+    [
+        body('rideId')
+            .isMongoId()
+            .withMessage('Invalid ride id')
+    ],
+    rideController.rejectRide
+);
+
+router.post('/cancel',
+    authMiddleware.authUser,
+    [
+        body('rideId')
+            .isMongoId()
+            .withMessage('Invalid ride id')
+    ],
+    rideController.cancelRide
+);
+
 router.post('/start',
     authMiddleware.authCaptain,
     [
@@ -87,6 +147,29 @@ router.post('/end',
             .withMessage('Invalid ride id')
     ],
     rideController.endRide
+);
+
+router.post('/confirm-payment',
+    authMiddleware.authCaptain,
+    [
+        body('rideId')
+            .isMongoId()
+            .withMessage('Invalid ride id'),
+        body('paymentMethod')
+            .isIn(['cash', 'upi'])
+            .withMessage('Invalid payment method')
+    ],
+    rideController.confirmPayment
+);
+
+router.get('/current',
+    authMiddleware.authUser,
+    rideController.getCurrentUserRide
+);
+
+router.get('/current-captain',
+    authMiddleware.authCaptain,
+    rideController.getCurrentCaptainRide
 );
 
 module.exports = router;
