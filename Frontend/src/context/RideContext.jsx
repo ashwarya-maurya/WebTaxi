@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useState } from 'react'
 
+// Context and provider intentionally share this small module.
+// eslint-disable-next-line react-refresh/only-export-components
 export const RideDataContext = createContext()
 
 const createInitialRideState = () => ({

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { RideDataContext } from '../context/RideContext'
 
-const WatingForDriver = (props) => {
+const WatingForDriver = () => {
 
   const { ride } = useContext(RideDataContext)
   const activeRide = ride.activeRide

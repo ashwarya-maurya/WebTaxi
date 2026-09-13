@@ -1,5 +1,7 @@
 import React, { createContext, useState } from 'react'
 
+// Context and provider intentionally share this small module.
+// eslint-disable-next-line react-refresh/only-export-components
 export const CaptainDataContext = createContext()
 
 const CaptainContext = ({ children }) => {

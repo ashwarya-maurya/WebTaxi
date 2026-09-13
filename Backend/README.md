@@ -1,4 +1,4 @@
-# Uber Clone - API Documentation
+# WebTaxi - API Documentation
 
 ## Base URL
 ```

@@ -2,7 +2,7 @@ const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
 const OSRM_BASE_URL = 'https://router.project-osrm.org';
 
 const getHeaders = () => ({
-    'User-Agent': process.env.NOMINATIM_USER_AGENT || 'RideBookingBackend/1.0',
+    'User-Agent': process.env.NOMINATIM_USER_AGENT || 'WebTaxiBackend/1.0',
     'Accept': 'application/json'
 });
 

@@ -13,7 +13,7 @@ const UserSignup = () => {
 
   const navigate = useNavigate()
 
-  const { user, setuser } = useContext(UserDataContext)
+  const { setuser } = useContext(UserDataContext)
 
   const submitHandler = async (e) => {
     e.preventDefault()

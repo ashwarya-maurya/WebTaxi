@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 
+// Context and provider intentionally share this small module.
+// eslint-disable-next-line react-refresh/only-export-components
 export const SocketDataContext = createContext()
 
 const SocketContext = ({ children }) => {

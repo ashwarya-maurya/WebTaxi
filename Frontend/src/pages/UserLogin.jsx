@@ -9,7 +9,7 @@ const UserLogin = () => {
   const [email, setemail] = useState('')
   const [password, setpassword] = useState('')
 
-  const { user, setuser } = useContext(UserDataContext)
+  const { setuser } = useContext(UserDataContext)
   const navigate = useNavigate()
 
   const submitHandler = async (e) => {
