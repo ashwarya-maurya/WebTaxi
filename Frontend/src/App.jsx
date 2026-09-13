@@ -1,6 +1,5 @@
-import React, { lazy, Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
-import 'leaflet/dist/leaflet.css';
 import UserProtectedWrap from './pages/UserProtectedWrap'
 import CaptainProtectedWrap from './pages/CaptainProtectedWrap'
 
