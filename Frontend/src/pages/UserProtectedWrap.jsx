@@ -92,6 +92,10 @@ const UserProtectedWrap = ({ children }) => {
       return undefined
     }
 
+    if (initializedRef.current) {
+      return undefined
+    }
+
     const initialize = async () => {
       resetRide()
 
