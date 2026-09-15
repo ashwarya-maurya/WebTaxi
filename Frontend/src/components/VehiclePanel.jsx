@@ -1,5 +1,3 @@
-import React from 'react'
-
 const VehiclePanel = (props) => {
 
   const estimate = props.estimate || {}
@@ -28,13 +26,13 @@ const VehiclePanel = (props) => {
     <div>
       <h5 onClick={() => {
         props.setvehiclePanelOpen(false)
-      }} className='text-center absolute top-0 w-[95%]'><i className=" text-2xl text-gray-300 ri-arrow-down-wide-line"></i></h5>
+      }} className='text-center absolute top-0 w-[95%]'><i className="text-2xl text-webtaxi-charcoal/50 ri-arrow-down-wide-line"></i></h5>
 
       <h4 className='text-2xl font-bold mb-5'>Choose the Vehicle</h4>
 
       <div onClick={() => {
         selectVehicle('Car')
-      }} aria-disabled={!hasValidFares} className={`border-3 border-white active:border-black flex items-center gap-3 p-4 rounded-2xl mb-3 ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
+      }} aria-disabled={!hasValidFares} className={`border-3 border-webtaxi-canvas active:border-user-primary flex items-center gap-3 p-4 rounded-2xl mb-3 ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
 
         <img
           className='h-11'
@@ -47,7 +45,7 @@ const VehiclePanel = (props) => {
             Taxi Car <span className='text-sm font-normal'><i className="ri-user-3-fill"></i>4</span>
           </h4>
           <h5 className='text-sm'>2 mins away</h5>
-          <p className='text-gray-500 text-sm'>Affordable, compact rides</p>
+          <p className='text-webtaxi-charcoal/70 text-sm'>Affordable, compact rides</p>
         </div>
 
         <h4 className='text-lg font-semibold'>{formatFare(estimate.Car)}</h4>
@@ -56,7 +54,7 @@ const VehiclePanel = (props) => {
 
       <div onClick={() => {
         selectVehicle('Bike')
-      }} aria-disabled={!hasValidFares} className={`border-3 border-white active:border-black flex items-center gap-4 p-4 rounded-2xl mb-3 ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
+      }} aria-disabled={!hasValidFares} className={`border-3 border-webtaxi-canvas active:border-user-primary flex items-center gap-4 p-4 rounded-2xl mb-3 ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
 
         <img
           className='h-13 px-2.5'
@@ -69,7 +67,7 @@ const VehiclePanel = (props) => {
             Moto <span className='text-sm font-normal'><i className="ri-user-3-fill"></i>1</span>
           </h4>
           <h5 className='text-sm'>3 mins away</h5>
-          <p className='text-gray-500 text-sm'>Affordable motorcycle rides</p>
+          <p className='text-webtaxi-charcoal/70 text-sm'>Affordable motorcycle rides</p>
         </div>
 
         <h4 className='text-lg font-semibold'>{formatFare(estimate.Bike)}</h4>
@@ -78,7 +76,7 @@ const VehiclePanel = (props) => {
 
       <div onClick={() => {
         selectVehicle('Auto')
-      }} aria-disabled={!hasValidFares} className={`border-3 border-white active:border-black flex items-center gap-4 p-4 rounded-2xl ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
+      }} aria-disabled={!hasValidFares} className={`border-3 border-webtaxi-canvas active:border-user-primary flex items-center gap-4 p-4 rounded-2xl ${hasValidFares ? '' : 'opacity-50 cursor-not-allowed'}`}>
 
         <img
           className='h-18'
@@ -91,7 +89,7 @@ const VehiclePanel = (props) => {
             Auto <span className='text-sm font-normal'><i className="ri-user-3-fill"></i>3</span>
           </h4>
           <h5 className='text-sm'>1 mins away</h5>
-          <p className='text-gray-500 text-sm'>Affordable auto rides</p>
+          <p className='text-webtaxi-charcoal/70 text-sm'>Affordable auto rides</p>
         </div>
 
         <h4 className='text-lg font-semibold'>{formatFare(estimate.Auto)}</h4>

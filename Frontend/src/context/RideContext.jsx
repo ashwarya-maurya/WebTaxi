@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useState } from 'react'
+import { createContext, useCallback, useState } from 'react'
 
 // Context and provider intentionally share this small module.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -19,9 +19,7 @@ const createInitialRideState = () => ({
   estimate: {
     Auto: null,
     Car: null,
-    Bike: null,
-    distance: null,
-    duration: null
+    Bike: null
   },
   activeRide: {
     rideId: null,
@@ -32,7 +30,6 @@ const createInitialRideState = () => ({
     vehicleType: null,
     fare: null,
     distance: null,
-    duration: null,
     status: null,
     captain: null,
     otp: null,
@@ -50,9 +47,7 @@ const createInitialRideState = () => ({
 const createEmptyEstimate = () => ({
   Auto: null,
   Car: null,
-  Bike: null,
-  distance: null,
-  duration: null
+  Bike: null
 })
 
 const RideContext = ({ children }) => {
@@ -94,17 +89,8 @@ const RideContext = ({ children }) => {
       estimate: {
         Auto: estimateData?.fare?.Auto ?? null,
         Car: estimateData?.fare?.Car ?? null,
-        Bike: estimateData?.fare?.Bike ?? null,
-        distance: estimateData?.distance ?? null,
-        duration: estimateData?.duration ?? null
+        Bike: estimateData?.fare?.Bike ?? null
       }
-    }))
-  }, [])
-
-  const clearEstimate = useCallback(() => {
-    setRide((prev) => ({
-      ...prev,
-      estimate: createEmptyEstimate()
     }))
   }, [])
 
@@ -145,7 +131,6 @@ const RideContext = ({ children }) => {
         vehicleType: rideData?.vehicleType ?? prev.activeRide.vehicleType,
         fare: rideData?.fare ?? prev.activeRide.fare,
         distance: rideData?.distance ?? prev.activeRide.distance,
-        duration: rideData?.duration ?? prev.activeRide.duration,
         status: rideData?.status ?? prev.activeRide.status,
         captain: rideData?.captain ?? prev.activeRide.captain,
         otp: rideData?.otp ?? prev.activeRide.otp,
@@ -196,7 +181,6 @@ const RideContext = ({ children }) => {
           vehicleType: null,
           fare: null,
           distance: null,
-          duration: null,
           status: null,
           captain: null,
           otp: null,
@@ -220,12 +204,10 @@ const RideContext = ({ children }) => {
   return (
     <RideDataContext.Provider value={{
       ride,
-      setRide,
       setPickup,
       setDestination,
       setSelectedVehicleType,
       setEstimate,
-      clearEstimate,
       clearBookingQuote,
       invalidateBookingLocation,
       setActiveRide,

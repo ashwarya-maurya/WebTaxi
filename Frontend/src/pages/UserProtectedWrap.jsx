@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { UserDataContext } from '../context/UserContext'
 import { SocketDataContext } from '../context/SocketContext'
@@ -152,16 +152,16 @@ const UserProtectedWrap = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-webtaxi-canvas text-webtaxi-ink">
         <p>Checking authentication...</p>
       </div>
     )
   }
 
   return (
-    <>
+    <div className='min-h-screen bg-webtaxi-canvas text-webtaxi-ink'>
       {children}
-    </>
+    </div>
   )
 }
 

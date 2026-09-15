@@ -83,16 +83,6 @@ const rideSchema = new mongoose.Schema({
         type: Number,
     }, // in meters
 
-    paymentID: {
-        type: String,
-    },
-    orderId: {
-        type: String,
-    },
-    signature: {
-        type: String,
-    },
-
     paymentStatus: {
         type: String,
         enum: ['pending', 'paid'],

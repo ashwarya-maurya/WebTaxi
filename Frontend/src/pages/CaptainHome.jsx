@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import LiveMap from '../components/LiveMap'
 import { Link } from 'react-router-dom'
 import CaptainDetails from '../components/CaptainDetails'
@@ -198,7 +198,7 @@ useEffect(() => {
   return (
     <div className='h-screen'>
 
-        <Link to='/captain_logout' className='fixed right-0 z-10 flex justify-center items-center rounded-full px-2 py-1 bg-white m-2'>
+        <Link to='/captain_logout' className='fixed right-0 z-10 flex justify-center items-center rounded-full px-2 py-1 bg-webtaxi-canvas text-captain-accent m-2'>
             <i className='text-2xl ri-logout-box-r-line'></i>
         </Link>
 
@@ -218,11 +218,11 @@ useEffect(() => {
         <CaptainDetails captain={captain} />
       </div>
 
-      <div ref={ridePopUpRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
+      <div ref={ridePopUpRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
         <RidePopUp setridePopUpPanel = {setridePopUpPanel} setrideAccepted = {setrideAccepted} />
       </div>
 
-      <div ref={rideAcceptedRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
+      <div ref={rideAcceptedRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
         <RideAccepted
           key={ride.activeRide.rideId || 'no-ride'}
           setrideAccepted={setrideAccepted}

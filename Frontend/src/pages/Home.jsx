@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import LocationSearchPanel from '../components/LocationSearchPanel'
@@ -600,9 +600,9 @@ const Home = () => {
   },[watingForDriver])
 
   return (
-    <div className='h-screen w-screen relative overflow-hidden'>
+    <div className='h-screen w-full relative overflow-hidden'>
 
-      <Link to='/logout' className='fixed z-10 right-3 top-3 flex justify-center items-center rounded-full px-2 py-1 bg-white'>
+      <Link to='/logout' className='fixed z-10 right-3 top-3 flex justify-center items-center rounded-full px-2 py-1 bg-webtaxi-canvas text-user-accent'>
           <i className='text-2xl ri-logout-box-r-line'></i>
       </Link>
 
@@ -625,7 +625,7 @@ const Home = () => {
 
       <div className='flex flex-col justify-end absolute w-full bottom-0'>
 
-        <div ref={findTrip} className='h-[30vh] bg-white p-6 rounded-t-2xl relative'>
+        <div ref={findTrip} className='h-[30vh] bg-webtaxi-canvas p-6 rounded-t-2xl relative'>
           <i ref={panelClose}
             onClick={() => setPanelOpen(false)}
             className="absolute right-[48%] top-0 opacity-0 text-3xl ri-arrow-down-wide-fill cursor-pointer"
@@ -640,7 +640,7 @@ const Home = () => {
             className='flex flex-col'
           >
 
-            <div className='bg-black h-12 w-0.75 rounded-full absolute left-10 top-23.75'></div>
+            <div className='bg-user-primary h-12 w-0.75 rounded-full absolute left-10 top-23.75'></div>
 
             <input
               onFocus={() => {
@@ -649,7 +649,7 @@ const Home = () => {
               }}
               onChange={handlePickupChange}
               value={pickup}
-              className='bg-[#EEEEEE] text-base px-12 py-2 mt-5 w-full rounded-lg outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand text-base px-12 py-2 mt-5 w-full rounded-lg outline-none focus:ring-2 focus:ring-user-primary'
               type='text'
               placeholder='Add a pick-up location'
             />
@@ -661,7 +661,7 @@ const Home = () => {
               }}
               onChange={handleDropoffChange}
               value={dropoff}
-              className='bg-[#EEEEEE] text-base px-12 py-2 mt-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand text-base px-12 py-2 mt-3 w-full rounded-lg outline-none focus:ring-2 focus:ring-user-primary'
               type='text'
               placeholder='Enter your destination'
             />
@@ -669,7 +669,7 @@ const Home = () => {
           </form>
         </div>
 
-        <div ref={panelRef} className='h-0 bg-white overflow-auto'>
+        <div ref={panelRef} className='h-0 bg-webtaxi-canvas overflow-auto'>
           <LocationSearchPanel
             suggestions={suggestions}
             isLoading={isSearching}
@@ -681,7 +681,7 @@ const Home = () => {
 
       </div>
 
-    <div ref={vehiclePanle}  className='fixed z-10 bottom-0 translate-y-full w-full bg-white px-4 py-6 rounded-t-2xl'>
+    <div ref={vehiclePanle}  className='fixed z-10 bottom-0 translate-y-full w-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
       <VehiclePanel
         estimate={ride.estimate}
         setSelectedVehicleType={setSelectedVehicleType}
@@ -690,7 +690,7 @@ const Home = () => {
       />
     </div>
 
-    <div ref={confirmRidePanle}  className='fixed z-10 bottom-0 translate-y-full w-full bg-white px-4 py-6 rounded-t-2xl'>
+    <div ref={confirmRidePanle}  className='fixed z-10 bottom-0 translate-y-full w-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
       <ConfirmRide
         setconfirmRidePanelOpen={setconfirmRidePanelOpen}
         setvehiclePanelOpen={setvehiclePanelOpen}
@@ -699,11 +699,11 @@ const Home = () => {
       />
     </div>
 
-    <div ref={lookingVehicleRef}  className='fixed z-10 bottom-0 translate-y-full w-full bg-white px-4 py-6 rounded-t-2xl'>
+    <div ref={lookingVehicleRef}  className='fixed z-10 bottom-0 translate-y-full w-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
       <LookingDriver setlookingVehicle={setlookingVehicle}/>
     </div>
     
-    <div ref={watingForDriverRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
+    <div ref={watingForDriverRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
       <WatingForDriver setwatingForDriver={setwatingForDriver}/>
     </div>
 

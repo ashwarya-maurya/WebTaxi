@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { RideDataContext } from '../context/RideContext'
 import { SocketDataContext } from '../context/SocketContext'
@@ -93,7 +93,7 @@ const Riding = () => {
   return (
     <div className='h-screen'>
 
-        <Link to='/home' className='fixed right-0 z-20 flex justify-center items-center rounded-full px-2 py-1 bg-white m-2'>
+        <Link to='/home' className='fixed right-0 z-20 flex justify-center items-center rounded-full px-2 py-1 bg-webtaxi-canvas text-user-accent m-2'>
             <i className='text-2xl ri-home-5-line'></i>
         </Link>
 
@@ -121,17 +121,17 @@ const Riding = () => {
                       {captain ? `${captain.fullname?.firstname || ''} ${captain.fullname?.lastname || ''}`.trim() : 'Driver'}
                     </h2>
                     <h4 className='text-xl font-semibold -mt-1 -mb-1'>{captain?.vehicle?.plate || 'Plate pending'}</h4>
-                    <p className='text-sm text-gray-600'>{captain?.vehicle?.color ? `${captain.vehicle.color} ${captain.vehicle.vehicleType}` : 'Vehicle pending'}</p>
+                    <p className='text-sm text-webtaxi-charcoal/80'>{captain?.vehicle?.color ? `${captain.vehicle.color} ${captain.vehicle.vehicleType}` : 'Vehicle pending'}</p>
                 </div>
             </div>
 
             <div className='w-full'>
 
-                <div className='flex items-center gap-5 border-b mb-1 p-2 border-gray-400'>
+                <div className='flex items-center gap-5 border-b mb-1 p-2 border-webtaxi-charcoal/30'>
                     <div><i className='text-xl ri-square-fill'></i></div>
                     <div>
                         <h2 className='text-lg font-semibold'>Destination</h2>
-                        <p className='text-sm -mt-1 text-gray-600'>{activeRide.destination || ride.destination.address || 'Not available'}</p>
+                        <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>{activeRide.destination || ride.destination.address || 'Not available'}</p>
                     </div>
                 </div>
 
@@ -141,7 +141,7 @@ const Riding = () => {
                         <h2 className='text-lg font-semibold'>
                           {activeRide.fare !== null ? `₹${activeRide.fare}` : '—'}
                         </h2>
-                        <p className='text-sm -mt-1 text-gray-600'>Payment Mode : Cash</p>
+                        <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>Payment Mode : Cash</p>
                     </div>
                 </div>
  

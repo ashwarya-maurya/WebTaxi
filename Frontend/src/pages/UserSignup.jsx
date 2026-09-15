@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserDataContext } from '../context/UserContext'
 import api from '../services/api'        
@@ -46,7 +46,7 @@ const UserSignup = () => {
   }
 
   return (
-    <div className='w-full h-screen p-5 flex justify-between flex-col '>
+    <div className='w-full h-screen p-5 flex justify-between flex-col bg-webtaxi-canvas text-webtaxi-ink'>
       <div>
         <img className='w-40 mb-8' src={WebTaxiLogo} alt='WebTaxi' />
         <form
@@ -64,7 +64,7 @@ const UserSignup = () => {
               required
               value={firstname}
               placeholder='First name'
-              className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-user-primary'
             />
             <input
               onChange={(e) => {
@@ -73,7 +73,7 @@ const UserSignup = () => {
               value={lastname}
               type="text"
               placeholder='Last name'
-              className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-user-primary'
             />
           </div>
 
@@ -83,7 +83,7 @@ const UserSignup = () => {
               setemail(e.target.value)
             }}
             value={email}
-            className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+            className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-user-primary'
             placeholder='email@example.com'
             required
             type='email' />
@@ -94,17 +94,17 @@ const UserSignup = () => {
               setpassword(e.target.value)
             }}
             value={password}
-            className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+            className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-user-primary'
             required
             type="password"
             placeholder='password' />
 
           <button
             type='submit'
-            className='w-full bg-black font-medium text-lg text-white rounded px-4 py-2'>Create account</button>
+            className='w-full bg-user-primary font-medium text-lg text-webtaxi-canvas rounded px-4 py-2'>Create account</button>
 
         </form>
-        <p className='mt-1  text-center'>Already have account? <Link to='/login' className='text-blue-600'>Login here</Link></p>
+        <p className='mt-1 text-center'>Already have account? <Link to='/login' className='text-user-accent'>Login here</Link></p>
 
       </div>
     </div>

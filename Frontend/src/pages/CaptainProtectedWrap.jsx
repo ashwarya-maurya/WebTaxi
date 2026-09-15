@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
 import { SocketDataContext } from '../context/SocketContext'
@@ -116,16 +116,16 @@ const CaptainProtectedWrap = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-screen flex items-center justify-center bg-webtaxi-canvas text-webtaxi-ink">
         <p>Checking authentication...</p>
       </div>
     )
   }
 
   return (
-    <>
+    <div className='min-h-screen bg-webtaxi-canvas text-webtaxi-ink'>
       {children}
-    </>
+    </div>
   )
 }
 

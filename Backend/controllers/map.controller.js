@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const mapService = require('../services/map.services');
 
-module.exports.getCoordinates = async (req, res, next) => {
+module.exports.getCoordinates = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -19,7 +19,7 @@ module.exports.getCoordinates = async (req, res, next) => {
     }
 };
 
-module.exports.getSuggestions = async (req, res, next) => {
+module.exports.getSuggestions = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -37,7 +37,7 @@ module.exports.getSuggestions = async (req, res, next) => {
     }
 };
 
-module.exports.getDistanceTime = async (req, res, next) => {
+module.exports.getDistanceTime = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -55,25 +55,7 @@ module.exports.getDistanceTime = async (req, res, next) => {
     }
 };
 
-module.exports.getAddressFromCoordinates = async (req, res, next) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-        const { lat, lng } = req.query;
-
-        const address = await mapService.getAddressFromCoordinates(lat, lng);
-
-        res.status(200).json(address);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-module.exports.getAddress = async (req, res, next) => {
+module.exports.getAddress = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {

@@ -19,7 +19,7 @@ const CaptainPayment = lazy(() => import('./pages/CaptainPayment'))
 
 const App = () => {
   return (
-    <div>
+    <div className='webtaxi-app-shell min-h-dvh bg-webtaxi-canvas text-webtaxi-ink'>
       <Suspense fallback={null}>
         <Routes>
           {/* Public routes — no authentication required */}

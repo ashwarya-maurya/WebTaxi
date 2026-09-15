@@ -90,8 +90,6 @@ module.exports.getCaptainsInRadius = async ({
             captain.location.lng
         );
 
-        captain._doc.distanceFromPickup = Number(distance.toFixed(2));
-
         return distance <= normalizedRadius;
     });
 };

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
 import api from '../services/api'
@@ -63,7 +63,7 @@ const CaptainSignup = () => {
   }
 
   return (
-    <div className='w-full h-screen p-5 flex flex-col'>
+    <div className='w-full h-screen p-5 flex flex-col bg-webtaxi-canvas text-webtaxi-ink'>
       <img className='w-40 mb-6' src={WebTaxiLogo} alt='WebTaxi' />
       <form
         onSubmit={(e) => {
@@ -80,7 +80,7 @@ const CaptainSignup = () => {
               required
               value={firstname}
               placeholder='First name'
-              className='bg-[#EEEEEE] mb-5 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-5 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
             />
 
             <input
@@ -90,7 +90,7 @@ const CaptainSignup = () => {
               value={lastname}
               type="text"
               placeholder='Last name'
-              className='bg-[#EEEEEE] mb-5 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-5 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
             />
           </div>
 
@@ -103,7 +103,7 @@ const CaptainSignup = () => {
             placeholder='email@example.com'
             required
             type='email'
-            className='bg-[#EEEEEE] mb-5 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+            className='bg-webtaxi-sand mb-5 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
           />
 
           <h2 className='text-lg mb-2 font-medium'>Enter Password</h2>
@@ -115,7 +115,7 @@ const CaptainSignup = () => {
             required
             type="password"
             placeholder='password'
-            className='bg-[#EEEEEE] mb-5 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+            className='bg-webtaxi-sand mb-5 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
           />
 
           <h2 className='text-lg mb-2 font-medium'>Vehicle Information</h2>
@@ -128,7 +128,7 @@ const CaptainSignup = () => {
               required
               placeholder='Vehicle Color'
               type="text"
-              className='bg-[#EEEEEE] mb-3 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-3 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
             />
             <input
               onChange={(e) => {
@@ -138,7 +138,7 @@ const CaptainSignup = () => {
               required
               placeholder='Vehicle Plate'
               type="text"
-              className='bg-[#EEEEEE] mb-3 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-3 text-lg px-4 py-2 w-full md:w-1/2 rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
             />
           </div>
 
@@ -151,7 +151,7 @@ const CaptainSignup = () => {
               required
               placeholder='Seating capacity'
               type="number"
-              className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full md:w-1/2 rounded outline-none focus:ring-2 focus:ring-black'
+              className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full md:w-1/2 rounded outline-none focus:ring-2 focus:ring-captain-primary'
             />
             <select
               onChange={(e) => {
@@ -159,7 +159,7 @@ const CaptainSignup = () => {
               }}
               value={vehicleType}
               required
-              className='bg-[#EEEEEE] mb-8 text-base px-4 py-2 w-full md:w-1/2 rounded outline-none focus:ring-2 focus:ring-black'>
+              className='bg-webtaxi-sand mb-8 text-base px-4 py-2 w-full md:w-1/2 rounded outline-none focus:ring-2 focus:ring-captain-primary'>
               <option value='' disabled>Vehicle Type</option>
               <option value='Car'>Car</option>
               <option value='Bike'>Bike</option>
@@ -171,8 +171,8 @@ const CaptainSignup = () => {
         <div>
           <button
             type='submit'
-            className='w-full bg-black font-medium text-lg text-white rounded px-4 py-3 mb-1'>Create Captain Account</button>
-          <p className='text-center'>Already have account? <Link to='/captain_login' className='text-blue-600'>Login here</Link></p>
+            className='w-full bg-captain-primary font-medium text-lg text-webtaxi-canvas rounded px-4 py-3 mb-1'>Create Captain Account</button>
+          <p className='text-center'>Already have account? <Link to='/captain_login' className='text-captain-accent'>Login here</Link></p>
         </div>
       </form>
     </div>

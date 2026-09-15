@@ -112,7 +112,7 @@ const getQueryCoordinates = (query, prefix) => {
     return { lat, lng };
 };
 
-module.exports.getFare = async (req, res, next) => {
+module.exports.getFare = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -135,7 +135,7 @@ module.exports.getFare = async (req, res, next) => {
     }
 };
 
-module.exports.createRide = async (req, res, next) => {
+module.exports.createRide = async (req, res) => {
     let ride;
     const errors = validationResult(req);
 
@@ -227,7 +227,7 @@ module.exports.createRide = async (req, res, next) => {
     }
 };
 
-module.exports.getNearbyCaptains = async (req, res, next) => {
+module.exports.getNearbyCaptains = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -252,7 +252,7 @@ module.exports.getNearbyCaptains = async (req, res, next) => {
     }
 };
 
-module.exports.acceptRide = async (req, res, next) => {
+module.exports.acceptRide = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -294,7 +294,7 @@ module.exports.acceptRide = async (req, res, next) => {
     }
 };
 
-module.exports.rejectRide = async (req, res, next) => {
+module.exports.rejectRide = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -324,7 +324,7 @@ module.exports.rejectRide = async (req, res, next) => {
     }
 };
 
-module.exports.cancelRide = async (req, res, next) => {
+module.exports.cancelRide = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -351,7 +351,7 @@ module.exports.cancelRide = async (req, res, next) => {
     }
 };
 
-module.exports.startRide = async (req, res, next) => {
+module.exports.startRide = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -379,7 +379,7 @@ module.exports.startRide = async (req, res, next) => {
     }
 };
 
-module.exports.endRide = async (req, res, next) => {
+module.exports.endRide = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -406,7 +406,7 @@ module.exports.endRide = async (req, res, next) => {
     }
 };
 
-module.exports.confirmPayment = async (req, res, next) => {
+module.exports.confirmPayment = async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -440,7 +440,7 @@ module.exports.confirmPayment = async (req, res, next) => {
     }
 };
 
-module.exports.getCurrentUserRide = async (req, res, next) => {
+module.exports.getCurrentUserRide = async (req, res) => {
     try {
         const ride = await rideService.getCurrentUserRide(req.user._id);
         res.status(200).json({ ride });
@@ -449,7 +449,7 @@ module.exports.getCurrentUserRide = async (req, res, next) => {
     }
 };
 
-module.exports.getCurrentCaptainRide = async (req, res, next) => {
+module.exports.getCurrentCaptainRide = async (req, res) => {
     try {
         const ride = await rideService.getCurrentCaptainRide(req.captain._id);
         res.status(200).json({ ride });

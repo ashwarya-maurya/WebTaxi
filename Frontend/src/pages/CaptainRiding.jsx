@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import RideComplete from '../components/RideComplete'
 import LiveMap from '../components/LiveMap'
 import { useGSAP } from '@gsap/react'
@@ -328,10 +328,10 @@ const CaptainRiding = () => {
       </div>
 
       {/* Pickup info sheet — shown right after acceptance, before "Reached Pickup" */}
-      <div ref={pickupSheetRef} className='fixed bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
+      <div ref={pickupSheetRef} className='fixed bottom-0 w-full translate-y-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
         <h4 className='text-2xl font-bold mb-2'>Head to Pickup</h4>
 
-        <div className='flex items-center gap-5 border-b mb-3 p-2 border-gray-400'>
+        <div className='flex items-center gap-5 border-b mb-3 p-2 border-webtaxi-charcoal/30'>
           <div><i className='text-xl ri-user-3-fill'></i></div>
           <div>
             <h2 className='text-lg font-semibold'>
@@ -341,7 +341,7 @@ const CaptainRiding = () => {
                     : "Rider"
             }
             </h2>
-            <p className='text-sm -mt-1 text-gray-600'>{activeRide.vehicleType ? `${activeRide.vehicleType} ride` : 'Ride details pending'}</p>
+            <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>{activeRide.vehicleType ? `${activeRide.vehicleType} ride` : 'Ride details pending'}</p>
           </div>
         </div>
 
@@ -349,29 +349,29 @@ const CaptainRiding = () => {
           <div><i className='text-xl ri-map-pin-4-fill'></i></div>
           <div>
             <h2 className='text-lg font-semibold'>Pickup</h2>
-            <p className='text-sm -mt-1 text-gray-600'>{activeRide.pickup || 'Not available'}</p>
+            <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>{activeRide.pickup || 'Not available'}</p>
           </div>
         </div>
 
         <button
           onClick={reachedPickup}
-          className='w-full text-white p-3 rounded font-semibold bg-black'
+          className='w-full text-webtaxi-canvas p-3 rounded font-semibold bg-captain-primary'
         >
           Reached Pickup
         </button>
       </div>
 
       {/* OTP sheet — shown only after "Reached Pickup" */}
-      <div ref={otpSheetRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white px-4 py-6 rounded-t-2xl'>
+      <div ref={otpSheetRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-webtaxi-canvas px-4 py-6 rounded-t-2xl'>
         <h4 className='text-2xl font-bold mb-2'>Enter Rider's OTP</h4>
-        <p className='text-sm text-gray-600 mb-5'>Ask the rider for their 6-digit OTP to start the trip.</p>
+        <p className='text-sm text-webtaxi-charcoal/80 mb-5'>Ask the rider for their 6-digit OTP to start the trip.</p>
 
         <form onSubmit={submitOtp}>
           <input
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             maxLength={6}
-            className='w-full text-lg font-mono rounded p-4 mb-5 bg-gray-200 tracking-widest text-center'
+            className='w-full text-lg font-mono rounded p-4 mb-5 bg-webtaxi-sand tracking-widest text-center'
             type="text"
             placeholder='••••••'
           />
@@ -383,7 +383,7 @@ const CaptainRiding = () => {
           <button
             type='submit'
             disabled={isStarting}
-            className={`w-full text-white p-3 rounded font-semibold ${isStarting ? 'bg-green-400' : 'bg-green-700'}`}
+            className={`w-full p-3 rounded font-semibold ${isStarting ? 'bg-webtaxi-sand text-webtaxi-charcoal' : 'bg-captain-primary text-webtaxi-canvas'}`}
           >
             {isStarting ? 'Verifying...' : 'Start Ride'}
           </button>
@@ -392,7 +392,7 @@ const CaptainRiding = () => {
 
       {/* Finish ride bar — unchanged, shown once ongoing */}
       {isOngoing && (
-        <div className='fixed z-10 bottom-0 w-full flex flex-col justify-center items-center bg-yellow-500 p-3'>
+        <div className='fixed z-10 bottom-0 w-full flex flex-col justify-center items-center bg-captain-accent text-webtaxi-ink p-3'>
           {finishError && (
             <p className='text-sm text-red-800 mb-1'>{finishError}</p>
           )}
@@ -401,7 +401,7 @@ const CaptainRiding = () => {
             <button
               onClick={finishRide}
               disabled={isFinishing}
-              className={`text-white p-2 rounded w-1/2 ${isFinishing ? 'bg-green-500' : 'bg-green-700'}`}
+              className={`p-2 rounded w-1/2 ${isFinishing ? 'bg-webtaxi-sand text-webtaxi-charcoal' : 'bg-captain-primary text-webtaxi-canvas'}`}
             >
               {isFinishing ? 'Finishing...' : 'Finish Ride'}
             </button>
@@ -409,7 +409,7 @@ const CaptainRiding = () => {
         </div>
       )}
 
-      <div ref={rideCompleteRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-white p-5 h-screen'>
+      <div ref={rideCompleteRef} className='fixed z-10 bottom-0 w-full translate-y-full bg-webtaxi-canvas p-5 h-screen'>
         <RideComplete setrideCompletePanel = {setrideCompletePanel} />
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { RideDataContext } from '../context/RideContext'
 import api from '../services/api'
 
@@ -75,7 +75,7 @@ const ConfirmRide = (props) => {
     <div>
       <h5 onClick={() => {
         props.setconfirmRidePanelOpen(false)
-      }} className='text-center absolute top-0 w-[95%]'><i className=" text-2xl text-gray-300 ri-arrow-down-wide-line"></i></h5>
+      }} className='text-center absolute top-0 w-[95%]'><i className="text-2xl text-webtaxi-charcoal/50 ri-arrow-down-wide-line"></i></h5>
 
       <h4 className='text-2xl font-bold mb-5'>Confirm your Ride</h4>
 
@@ -84,19 +84,19 @@ const ConfirmRide = (props) => {
 
         <div className='w-full'>
 
-          <div className='flex items-center gap-5 border-b mb-3 p-2 border-gray-400'>
+        <div className='flex items-center gap-5 border-b mb-3 p-2 border-webtaxi-charcoal/30'>
             <div><i className='text-xl ri-map-pin-4-fill'></i></div>
             <div>
               <h2 className='text-lg font-semibold'>Pickup</h2>
-              <p className='text-sm -mt-1 text-gray-600'>{ride.pickup.address || 'Not selected'}</p>
+              <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>{ride.pickup.address || 'Not selected'}</p>
             </div>
           </div>
 
-          <div className='flex items-center gap-5 border-b mb-3 p-2 border-gray-400'>
+          <div className='flex items-center gap-5 border-b mb-3 p-2 border-webtaxi-charcoal/30'>
             <div><i className='text-xl ri-square-fill'></i></div>
             <div>
               <h2 className='text-lg font-semibold'>Destination</h2>
-              <p className='text-sm -mt-1 text-gray-600'>{ride.destination.address || 'Not selected'}</p>
+              <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>{ride.destination.address || 'Not selected'}</p>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ const ConfirmRide = (props) => {
               <h2 className='text-lg font-semibold'>
                 {fareForSelectedVehicle !== null ? `₹${fareForSelectedVehicle}` : '—'}
               </h2>
-              <p className='text-sm -mt-1 text-gray-600'>Payment Mode : Cash{vehicleType ? ` · ${vehicleType}` : ''}</p>
+              <p className='text-sm -mt-1 text-webtaxi-charcoal/80'>Payment Mode : Cash{vehicleType ? ` · ${vehicleType}` : ''}</p>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ const ConfirmRide = (props) => {
         <button
           onClick={confirmRide}
           disabled={isSubmitting}
-          className={`w-full text-white p-2 rounded ${isSubmitting ? 'bg-green-400' : 'bg-green-700'}`}
+          className={`w-full p-2 rounded ${isSubmitting ? 'bg-webtaxi-sand text-webtaxi-charcoal' : 'bg-user-primary text-webtaxi-canvas'}`}
         >
           {isSubmitting ? 'Confirming...' : 'Confirm Ride'}
         </button>

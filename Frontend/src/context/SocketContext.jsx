@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useRef, useState } from 'react'
+import { createContext, useCallback, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 
 // Context and provider intentionally share this small module.

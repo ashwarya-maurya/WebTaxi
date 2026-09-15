@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CaptainDataContext } from '../context/CaptainContext'
 import api from '../services/api'        
@@ -38,7 +38,7 @@ const CaptainLogin = () => {
   }
 
   return (
-    <div className='w-full h-screen p-5 flex justify-between flex-col '>
+    <div className='w-full h-screen p-5 flex justify-between flex-col bg-webtaxi-canvas text-webtaxi-ink'>
       <div>
         <img className='w-40 mb-8' src={WebTaxiLogo} alt='WebTaxi' />
         <form
@@ -52,7 +52,7 @@ const CaptainLogin = () => {
               setemail(e.target.value)
             }}
             value={email}
-            className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+            className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
             placeholder='email@example.com'
             required
             type='email' />
@@ -63,21 +63,21 @@ const CaptainLogin = () => {
               setpassword(e.target.value)
             }}
             value={password}
-            className='bg-[#EEEEEE] mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-black'
+            className='bg-webtaxi-sand mb-8 text-lg px-4 py-2 w-full rounded placeholder:text-base outline-none focus:ring-2 focus:ring-captain-primary'
             required
             type="password"
             placeholder='password' />
 
           <button
             type='submit'
-            className='w-full bg-black font-medium text-lg text-white rounded px-4 py-2'>Login</button>
+            className='w-full bg-captain-primary font-medium text-lg text-webtaxi-canvas rounded px-4 py-2'>Login</button>
 
         </form>
-        <p className='mt-1  text-center'>Join a fleet? <Link to='/captain_signup' className='text-blue-600'>Register as Captain</Link></p>
+        <p className='mt-1 text-center'>Join a fleet? <Link to='/captain_signup' className='text-captain-accent'>Register as Captain</Link></p>
 
       </div>
       <div>
-        <Link to='/login' className='border border-gray-400 w-full text-black font-medium text-lg bg-yellow-500 rounded px-4 py-2 flex items-center justify-center'>Sign In as User</Link>
+        <Link to='/login' className='border border-webtaxi-charcoal/30 w-full text-webtaxi-ink font-medium text-lg bg-captain-accent rounded px-4 py-2 flex items-center justify-center'>Sign In as User</Link>
       </div>
     </div>
   )
